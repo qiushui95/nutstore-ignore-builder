@@ -1,0 +1,3 @@
+%SSH_ROOT%\*.bak
+%SSH_ROOT%\known_hosts
+%SSH_ROOT%\known_hosts.old
