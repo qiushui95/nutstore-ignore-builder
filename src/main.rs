@@ -1,5 +1,4 @@
 use anyhow::Result;
-use regex::Regex;
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -41,27 +40,19 @@ fn load_env_map() -> Result<HashMap<String, String>> {
 }
 
 fn get_abs_env(map: &HashMap<String, String>, relative_env: &str) -> Result<String> {
-    let re = Regex::new(r"%([^%]+)%")?;
-
-    let mut replace_map = HashMap::new();
-
-    for cap in re.captures_iter(relative_env) {
-        let key = &cap[1];
-
-        let Some(env) = map.get(key) else {
-            continue;
-        };
-
-        replace_map.insert(key.to_string(), env.to_string());
+    let mut out = String::new();
+    for (i, part) in relative_env.split('%').enumerate() {
+        if i % 2 == 0 {
+            out.push_str(part);
+        } else if let Some(val) = map.get(part) {
+            out.push_str(val);
+        } else {
+            out.push('%');
+            out.push_str(part);
+            out.push('%');
+        }
     }
-
-    let mut env = relative_env.to_string();
-
-    for (key, value) in replace_map {
-        env = env.replace(&format!("%{}%", key), &value);
-    }
-
-    Ok(env)
+    Ok(out)
 }
 
 fn load_ignore_lines(env_map: &HashMap<String, String>) -> Result<Vec<String>> {
